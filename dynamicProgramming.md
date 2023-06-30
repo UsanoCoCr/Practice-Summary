@@ -2,6 +2,8 @@
 - [目录](#目录)
 - [5. 最长回文子串](#5-最长回文子串)
 - [72. 编辑距离](#72-编辑距离)
+- [1218. 最长定差子序列](#1218-最长定差子序列)
+- [300. 最长递增子序列（二分）](#300-最长递增子序列二分)
 
 # 5. 最长回文子串
 给你一个字符串 s，找到 s 中最长的回文子串。
@@ -88,5 +90,70 @@ public:
 ```
 </details>
 
+# 1218. 最长定差子序列
+给你一个整数数组 arr 和一个整数 difference，请你找出并返回 arr 中最长等差子序列的长度，该子序列中相邻元素之间的差等于 difference 。
 
+子序列 是指在不改变其余元素顺序的情况下，通过删除一些元素或不删除任何元素而从 arr 派生出来的序列。
+
+**要点：** 如果使用传统的从前往后按位置找的dp，那么$10^5$的数据量显然会使$O(n^2)$的算法超时。所以我们需要找到一个$O(n)4的方法来更新dp数组。
+
+<details>
+<summary>最长定差子序列</summary>
+
+```c++
+class Solution {
+public:
+    int f[40001]={0};//f[i]表示以i结尾的最长等差子序列的长度
+    int longestSubsequence(vector<int>& arr, int difference) {
+        int ans = 0;
+        for(int i: arr){
+            f[i+20000] = f[i-difference+20000] + 1;
+            ans = max(ans, f[i+20000]);
+        }
+        return ans;
+    }
+};
+```
+</details>
  
+# 300. 最长递增子序列（二分）
+给你一个整数数组 nums ，找到其中最长严格递增子序列的长度。
+
+子序列 是由数组派生而来的序列，删除（或不删除）数组中的元素而不改变其余元素的顺序。例如，[3,6,2,7] 是数组 [0,3,1,6,2,2,7] 的子序列。
+
+**要点：** 本题的难点在于如何找到$O(nlogn)$的算法。我们可以使用一个数组来存储当前最长的递增子序列，然后使用二分查找来更新这个数组。
+
+**理解：** 直接看文字确实不太好懂，加个例子就比较容易明白，比如序列是78912345，前三个遍历完以后tail是789，这时候遍历到1，就得把1放到合适的位置，于是在f二分查找1的位置，变成了189，再遍历到2成为129，然后是123直到12345
+
+<details>
+<summary>最长递增子序列</summary>
+
+```c++
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        vector<int> f;//f[i]表示长度为i的递增子序列的最小末尾元素
+        f.push_back(nums[0]);
+        for(int i=1;i<nums.size();i++){
+            if(nums[i] > f.back()){
+                f.push_back(nums[i]);
+            }
+            else{
+                int l = 0, r = f.size()-1;
+                while(l < r){
+                    int mid = (l+r)/2;
+                    if(f[mid] < nums[i]){
+                        l = mid+1;
+                    }
+                    else{
+                        r = mid;
+                    }
+                }
+                f[l] = nums[i];
+            }
+        }
+        return f.size();
+    }
+};
+```
+</details>
