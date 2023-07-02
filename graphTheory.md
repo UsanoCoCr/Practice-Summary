@@ -2,6 +2,7 @@
 - [目录](#目录)
 - [802. 找到最终的安全状态](#802-找到最终的安全状态)
 - [1192. 查找集群内的关键连接](#1192-查找集群内的关键连接)
+- [127. 单词接龙](#127-单词接龙)
 
 # 802. 找到最终的安全状态
 有一个有 n 个节点的有向图，节点按 0 到 n - 1 编号。图由一个 索引从 0 开始 的 2D 整数数组 graph表示， graph[i]是与节点 i 相邻的节点的整数数组，这意味着从节点 i 到 graph[i]中的每个节点都有一条边。
@@ -141,3 +142,59 @@ public:
 ```
 </details>
 在上面这份代码中，id代表了时间戳，ids是dfs搜索的时间，low代表了当前节点能够访问到的最早的节点的时间戳。如果当前节点的ids小于low，则说明当前节点是关键连接。
+
+# 127. 单词接龙
+字典 wordList 中从单词 beginWord 和 endWord 的 转换序列 是一个按下述规格形成的序列 beginWord -> s1 -> s2 -> ... -> sk：
+
+每一对相邻的单词只差一个字母。
+ 对于 1 <= i <= k 时，每个 si 都在 wordList 中。注意， beginWord 不需要在 wordList 中。
+sk == endWord
+给你两个单词 beginWord 和 endWord 和一个字典 wordList ，返回 从 beginWord 到 endWord 的 最短转换序列 中的 单词数目 。如果不存在这样的转换序列，返回 0 。
+
+**要点：** 这道题由于数据量较大，在判断两个词是否只差一个字母时，使用暴力的方法会超时。所以我们需要使用无向图来进行优化。
+
+<details>
+<summary>单词接龙</summary>
+
+```c++
+class Solution {
+public:
+    unordered_map<string, vector<string>> graph;
+    unordered_set<string> visited;
+    queue<string> q;
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        wordList.push_back(beginWord);
+        for (string word : wordList) {
+            for (int i = 0; i < word.size(); i++) {
+                string newWord = word.substr(0, i) + '*' + word.substr(i+1);
+                graph[newWord].push_back(word);
+            }
+        }
+        q.push(beginWord);
+        visited.insert(beginWord);
+        int step = 0;
+        while (!q.empty()) {
+            int size = q.size();
+            step++;
+            for (int i = 0; i < size; i++) {
+                string word = q.front();
+                q.pop();
+                if (word == endWord) {
+                    return step;
+                }
+                for (int i = 0; i < word.size(); i++) {
+                    string newWord = word.substr(0, i) + '*' + word.substr(i+1);
+                    for (string neighbor : graph[newWord]) {
+                        if (visited.find(neighbor) == visited.end()) {
+                            visited.insert(neighbor);
+                            q.push(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+};
+```
+</details>
