@@ -4,6 +4,9 @@
 - [72. 编辑距离](#72-编辑距离)
 - [1218. 最长定差子序列](#1218-最长定差子序列)
 - [300. 最长递增子序列（二分）](#300-最长递增子序列二分)
+- [337. 打家劫舍 III](#337-打家劫舍-iii)
+- [518. 零钱兑换 II](#518-零钱兑换-ii)
+- [790. 多米诺和托米诺平铺](#790-多米诺和托米诺平铺)
 
 # 5. 最长回文子串
 给你一个字符串 s，找到 s 中最长的回文子串。
@@ -153,6 +156,130 @@ public:
             }
         }
         return f.size();
+    }
+};
+```
+</details>
+
+# 337. 打家劫舍 III
+小偷又发现了一个新的可行窃的地区。这个地区只有一个入口，我们称之为 root 。
+
+除了 root 之外，每栋房子有且只有一个“父“房子与之相连。一番侦察之后，聪明的小偷意识到“这个地方的所有房屋的排列类似于一棵二叉树”。 如果 两个直接相连的房子在同一天晚上被打劫 ，房屋将自动报警。
+
+给定二叉树的 root 。返回 在不触动警报的情况下 ，小偷能够盗取的最高金额 。
+
+**要点：** 在处理本题时，可以使用一个pair结构，first用来存储偷当前节点的最大值，second用来存储不偷当前节点的最大值。这样就可以在递归的过程中同时更新两个值。
+
+<details>
+<summary>打家劫舍 III</summary>
+
+```c++
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    int rob(TreeNode* root) {
+        auto pair = dfs(root);
+        return max(pair.first, pair.second);
+    }
+    pair<int, int> dfs(TreeNode* root){
+        if(root == nullptr)
+            return make_pair(0, 0);
+        auto left = dfs(root->left);
+        auto right = dfs(root->right);
+        int rob = root->val + left.second + right.second;
+        int notRob = max(left.first, left.second) + max(right.first, right.second);
+        return make_pair(rob, notRob);
+    }
+};
+```
+</details>
+
+# 518. 零钱兑换 II
+给你一个整数数组 coins 表示不同面额的硬币，另给一个整数 amount 表示总金额。
+
+请你计算并返回可以凑成总金额的硬币组合数。如果任何硬币组合都无法凑出总金额，返回 0 。
+
+假设每一种面额的硬币有无限个。 
+
+题目数据保证结果符合 32 位带符号整数。
+
+**要点：** **这道题是求组合数，不是求排列数，所以外层循环应该是遍历硬币，内层循环应该是遍历金额。如果是求排列数，那么外层循环应该是遍历金额，内层循环应该是遍历硬币。**
+
+<details>
+<summary>零钱兑换 II</summary>
+
+```c++
+class Solution {
+public:
+    int change(int amount, vector<int>& coins) {
+        vector<int> f(amount+1, 0);
+        f[0] = 1;
+        for(int i=0;i<coins.size();i++){
+            for(int j=1;j<=amount;j++){
+                if(j >= coins[i]){
+                    f[j] += f[j-coins[i]];
+                }
+            }
+        }
+        return f[amount];
+    }
+};
+```
+</details>
+
+# 790. 多米诺和托米诺平铺
+有两种形状的瓷砖：一种是 2 x 1 的多米诺形，另一种是形如 "L" 的托米诺形。两种形状都可以旋转。
+
+给定整数 n ，返回可以平铺 2 x n 的面板的方法的数量。返回对 10^9 + 7 取模 的值。
+
+平铺指的是每个正方形都必须有瓷砖覆盖。两个平铺不同，当且仅当面板上有四个方向上的相邻单元中的两个，使得恰好有一个平铺有一个瓷砖占据两个正方形。
+
+**要点：** 这道题可以使用状态机dp，即f[i][j]表示第i列的状态为j时的方法数，状态分别为为10，01，11，分别表示上下两个格子是否被覆盖。然后根据状态转移方程进行转移即可。
+
+<details>
+<summary>多米诺和托米诺平铺</summary>
+
+```c++
+class Solution {
+public:
+    int f[1001][3]={0};
+    int N = 1000000007;
+    int numTilings(int n) {
+        f[1][2] = 1;
+        f[2][0] = 1;
+        f[2][1] = 1;
+        f[2][2] = 2;
+        for(int i=3;i<=n;i++){
+            f[i][0] += f[i-2][2];
+            f[i][0] = f[i][0] % N;
+            f[i][0] += f[i-1][1];
+            f[i][0] = f[i][0] % N;
+            
+            f[i][1] += f[i-2][2];
+            f[i][1] = f[i][1] % N;
+            f[i][1] += f[i-1][0];
+            f[i][1] = f[i][1] % N;
+
+            f[i][2] += f[i-1][2];
+            f[i][2] = f[i][2] % N;
+            f[i][2] += f[i-2][2];
+            f[i][2] = f[i][2] % N;
+            f[i][2] += f[i-1][0];
+            f[i][2] = f[i][2] % N;
+            f[i][2] += f[i-1][1];
+            f[i][2] = f[i][2] % N;
+        }
+        return f[n][2];
     }
 };
 ```
