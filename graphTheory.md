@@ -4,6 +4,8 @@
 - [1192. 查找集群内的关键连接](#1192-查找集群内的关键连接)
 - [127. 单词接龙](#127-单词接龙)
 - [864. 获取所有钥匙的最短路径](#864-获取所有钥匙的最短路径)
+- [1557. 可以到达所有点的最少点数目](#1557-可以到达所有点的最少点数目)
+- [1857. 有向图中最大颜色值](#1857-有向图中最大颜色值)
 
 # 802. 找到最终的安全状态
 有一个有 n 个节点的有向图，节点按 0 到 n - 1 编号。图由一个 索引从 0 开始 的 2D 整数数组 graph表示， graph[i]是与节点 i 相邻的节点的整数数组，这意味着从节点 i 到 graph[i]中的每个节点都有一条边。
@@ -254,6 +256,88 @@ public:
             }
         }
         return -1;
+    }
+};
+```
+</details>
+
+# 1557. 可以到达所有点的最少点数目
+给你一个 有向无环图 ， n 个节点编号为 0 到 n-1 ，以及一个边数组 edges ，其中 edges[i] = [fromi, toi] 表示一条从点  fromi 到点 toi 的有向边。
+
+找到最小的点集使得从这些点出发能到达图中所有点。题目保证解存在且唯一。
+
+你可以以任意顺序返回这些节点编号。
+
+**要点：** 所有入度为0的结点的数目即可以到达所有点的最少点数目
+首先，所有入度为0的结点是一定要选的，因为不可能从其它任何结点通过任何一条路径到达入度为0的结点。接下来，如果能证明总存在一个入度为0的结点通过某一条路径到达一个入度不为0的结点，那么我们的思路就是正确的。
+
+<details>
+<summary>可以到达所有点的最少点数目</summary>
+
+```c++
+class Solution {
+public:
+    vector<int> findSmallestSetOfVertices(int n, vector<vector<int>>& edges) {
+        vector<int> indegree(n);
+        for (auto &i : edges) {
+            ++indegree[i[1]];
+        }
+        vector<int> ret;
+        for (int i = 0; i < n; ++i) {
+            if (indegree[i] == 0) {
+                ret.push_back(i);
+            }
+        }
+        return ret;
+    }
+};
+```
+</details>
+
+# 1857. 有向图中最大颜色值
+给你一个 有向图 ，它含有 n 个节点和 m 条边。节点编号从 0 到 n - 1 。
+
+给你一个字符串 colors ，其中 colors[i] 是小写英文字母，表示图中第 i 个节点的 颜色 （下标从 0 开始）。同时给你一个二维数组 edges ，其中 edges[j] = [aj, bj] 表示从节点 aj 到节点 bj 有一条 有向边 。
+
+图中一条有效 路径 是一个点序列 x1 -> x2 -> x3 -> ... -> xk ，对于所有 1 <= i < k ，从 xi 到 xi+1 在图中有一条有向边。路径的 颜色值 是路径中 出现次数最多 颜色的节点数目。
+
+请你返回给定图中有效路径里面的 最大颜色值 。如果图中含有环，请返回 -1 。
+
+**要点：** 这道题是拓扑排序的变形，需要记录每个结点的入度，以及每个结点的颜色值。在拓扑排序的过程中，每次将入度为0的结点加入队列，然后更新其邻接结点的颜色值，最后判断是否有环。
+
+<details>
+<summary>有向图中最大颜色值</summary>
+
+```c++
+class Solution {
+public:
+    int largestPathValue(string colors, vector<vector<int>>& edges) {
+        int n = colors.size();
+        vector<vector<int>> g(n);
+        vector<int> in(n), colorCount(n), dp(n);
+        vector<vector<int>> colorFreq(n, vector<int>(26));//从0到n-1的颜色出现频率
+        for (auto &e : edges) {
+            g[e[0]].push_back(e[1]);
+            ++in[e[1]];
+        }
+        queue<int> q;
+        for (int i = 0; i < n; ++i)
+            if (in[i] == 0)
+                q.push(i);
+        while (!q.empty()) {
+            auto u = q.front(); q.pop();
+            colorFreq[u][colors[u] - 'a']++;
+            dp[u] = *max_element(colorFreq[u].begin(), colorFreq[u].end());
+            for (auto v : g[u]) {
+                if (--in[v] == 0)
+                    q.push(v);
+                for (int i = 0; i < 26; ++i)
+                    colorFreq[v][i] = max(colorFreq[v][i], colorFreq[u][i]);//动态规划更新颜色值
+            }
+        }
+        if (count(in.begin(), in.end(), 0) < n)
+            return -1;
+        return *max_element(dp.begin(), dp.end());
     }
 };
 ```
